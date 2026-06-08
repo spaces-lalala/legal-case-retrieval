@@ -1,0 +1,28 @@
+# AI agent 相關
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# 環境變數與密鑰
+.env
+.env.*
+
+# 資料與索引（避免大檔進 repo）
+data/
+*.chroma/
+chroma_db/
+*.rar
+*.7z
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
