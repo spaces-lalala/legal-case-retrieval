@@ -15,7 +15,7 @@ venv/
 .env.*
 
 # 資料與索引（避免大檔進 repo）
-data/
+/data/
 *.chroma/
 chroma_db/
 *.rar

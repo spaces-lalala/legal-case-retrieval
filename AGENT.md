@@ -45,6 +45,32 @@
 - 每個任務開新分支（feat/... 或 fix/...），不在 main 開發。
 - Conventional Commits，commit message 一行英文寫重點。
 
+## 專案結構
+
+```
+src/lcr/            核心可重用模組（實驗 + 工程階段共用）
+  config.py         集中設定（路徑、參數，禁止他處直接讀 env）
+  data/filter.py    子集篩選純邏輯
+experiments/        實驗腳本（跑一次產數據，可拋棄）
+  NN_xxx.py         依序編號
+  results/          各實驗結果筆記（.md）
+tests/              pytest 單元測試
+data/               原始與處理產物（gitignore，不進版控）
+mock/               前端 mock 資料
+docs/               設計文件
+```
+
+### 實驗階段執行
+
+資料在 `home_wsl`，於該機 tmux 中跑（量大、SSH 易斷）：
+
+```bash
+LCR_DATASET_ROOT=/home/mrfrog/code/lawundry_test/Dataset \
+  uv run python experiments/01_subset_filter.py
+```
+
+本機跑測試與 lint：`uv run pytest`、`uv run ruff check .`
+
 ## 文件慣例
 
 - 專案架構、流程、設計決策一律寫在 docs/。
