@@ -1,18 +1,14 @@
 """OpenAI Batch API 抽取層。
 
-使用 gpt-5-mini + Batch API（省 50%）做語意類要素抽取：
-  - 判決結果（有罪/無罪/不受理/緩刑/免刑/駁回）
-  - 刑度（有期徒刑 X 月/拘役 X 日/罰金 X 元）
-  - 賠償金額（整數，無則 null）
-  - 主觀要素（故意/過失/不明）
-  - 事實摘要（100-150 字繁體中文）
+使用 gpt-5-mini + Batch API（省 50%）做語意類要素抽取。
+刑事/民事使用不同 schema（詳見 schemas.py）。
 
 Batch API 流程：
   1. 建立 .jsonl 請求檔 → upload → create batch
-  2. 輪詢 batch 狀態（通常 < 24h，實際幾分鐘到幾小時）
+  2. 輪詢 batch 狀態（通常幾分鐘到幾小時）
   3. 下載結果 → 解析 → 合併回 corpus
 
-詳見 experiments/04a_openai_batch.py。
+詳見 experiments/04a_openai_batch.py、docs/design_change_v1.md。
 """
 
 from __future__ import annotations
@@ -24,67 +20,17 @@ from pathlib import Path
 from openai import OpenAI
 
 from lcr.config import settings
-
-EXTRACTION_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "verdict": {
-            "type": "string",
-            "enum": ["有罪", "無罪", "不受理", "緩刑", "免刑", "駁回", "其他", "不明"],
-            "description": "判決結果",
-        },
-        "sentence": {
-            "type": ["string", "null"],
-            "description": "刑度，如「有期徒刑3月」「拘役30日」「罰金1萬元」，無則 null",
-        },
-        "compensation": {
-            "type": ["integer", "null"],
-            "description": "賠償或給付金額（新台幣元，整數），無則 null",
-        },
-        "subjective": {
-            "type": "string",
-            "enum": ["故意", "過失", "不明"],
-            "description": "主觀要素",
-        },
-        "facts_summary": {
-            "type": "string",
-            "description": "事實摘要，100-150 字繁體中文白話，不含法條引用",
-        },
-    },
-    "required": ["verdict", "sentence", "compensation", "subjective", "facts_summary"],
-    "additionalProperties": False,
-}
-
-_SYSTEM_PROMPT = """你是台灣法律判決書分析助理。請從以下判決書內容中抽取結構化要素，
-以 JSON 格式回傳，嚴格遵守 schema，不要編造原文沒有的內容。"""
-
-_USER_TEMPLATE = """以下是判決書內容（已切段）：
-
-【主文】
-{main}
-
-【事實】
-{facts}
-
-【理由摘錄】
-{reasoning}
-
-請抽取以下欄位（若無法確定填「不明」或 null）：
-- verdict: 判決結果
-- sentence: 刑度（無則 null）
-- compensation: 賠償金額（整數元，無則 null）
-- subjective: 主觀要素（故意/過失/不明）
-- facts_summary: 事實摘要 100-150 字"""
+from lcr.extract.schemas import SYSTEM_PROMPT, get_schema, get_user_template
 
 
 def build_batch_request(record: dict, custom_id: str) -> dict:
-    """建立單筆 batch request 物件。"""
-    # 理由段可能很長，截取前 3000 字節省 token
+    """建立單筆 batch request 物件，依 kind 選對應 schema。"""
+    kind = record.get("kind", "criminal")
     reasoning = (record.get("reasoning") or "")[:3000]
     facts = (record.get("facts") or "")[:2000]
     main = (record.get("main") or "")[:500]
 
-    user_msg = _USER_TEMPLATE.format(
+    user_msg = get_user_template(kind).format(
         main=main or "(無主文段)",
         facts=facts or "(無事實段)",
         reasoning=reasoning or "(無理由段)",
@@ -97,20 +43,21 @@ def build_batch_request(record: dict, custom_id: str) -> dict:
         "body": {
             "model": settings.openai_batch_model,
             "messages": [
-                {"role": "system", "content": _SYSTEM_PROMPT},
+                {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_msg},
             ],
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
-                    "name": "judgment_extraction",
+                    "name": f"judgment_extraction_{kind}",
                     "strict": True,
-                    "schema": EXTRACTION_SCHEMA,
+                    "schema": get_schema(kind),
                 },
             },
-            "max_completion_tokens": 4096,  # gpt-5-mini 是 reasoning model，內部思考消耗大量 token
+            "max_completion_tokens": 4096,
         },
     }
+
 
 
 def create_batch_file(
