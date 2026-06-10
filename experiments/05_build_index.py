@@ -110,7 +110,12 @@ def main() -> int:
 
     corpus_path = processed / "corpus.jsonl"
     segmented_path = processed / "segmented.jsonl"
-    extract_path = processed / "gpt_extract.jsonl"
+    # 優先用全量 GPT 抽取，fallback 到舊版測試結果
+    extract_path = processed / "gpt_extract_all.jsonl"
+    if not extract_path.exists():
+        extract_path = processed / "gpt_extract.jsonl"
+        if extract_path.exists():
+            print(f"[警告] gpt_extract_all.jsonl 不存在，使用 {extract_path}")
 
     if not corpus_path.exists():
         print(f"[錯誤] 找不到 corpus.jsonl：{corpus_path}")
