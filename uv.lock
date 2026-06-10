@@ -1170,6 +1170,11 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
+extract = [
+    { name = "accelerate" },
+    { name = "openai" },
+    { name = "transformers" },
+]
 retrieval = [
     { name = "bm25s" },
     { name = "chromadb" },
@@ -1178,16 +1183,19 @@ retrieval = [
 
 [package.metadata]
 requires-dist = [
+    { name = "accelerate", marker = "extra == 'extract'", specifier = ">=0.30" },
     { name = "bm25s", marker = "extra == 'retrieval'", specifier = ">=0.2" },
     { name = "chromadb", marker = "extra == 'retrieval'", specifier = ">=0.5" },
     { name = "flagembedding", marker = "extra == 'retrieval'", specifier = ">=1.2" },
     { name = "openai", specifier = ">=2.41.0" },
+    { name = "openai", marker = "extra == 'extract'", specifier = ">=2.0" },
     { name = "pydantic", specifier = ">=2.7" },
     { name = "pydantic-settings", specifier = ">=2.3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
+    { name = "transformers", marker = "extra == 'extract'", specifier = ">=5.0" },
 ]
-provides-extras = ["retrieval", "dev"]
+provides-extras = ["retrieval", "dev", "extract"]
 
 [[package]]
 name = "lxml"
