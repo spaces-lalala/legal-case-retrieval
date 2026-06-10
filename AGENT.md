@@ -62,7 +62,16 @@
 ```
 src/lcr/            核心可重用模組（實驗 + 工程階段共用）
   config.py         集中設定（路徑、參數，禁止他處直接讀 env）
-  data/filter.py    子集篩選純邏輯
+  data/filter.py    子集篩選純邏輯（刑民通用，含程序性排除）
+  data/segment.py   判決書結構切段（主文/事實/理由）
+  extract/
+    schemas.py      刑事 / 民事要素抽取 schema（分開定義）
+    regex_extractor.py  regex 層（法條、金額、判決結果）
+    openai_extractor.py OpenAI Batch API 抽取（gpt-5-mini）
+  retrieval/
+    kind_classifier.py  從事由推斷 criminal/civil/both
+    indexer.py      BGE-M3 dense + BM25s sparse 索引建立
+    searcher.py     混合檢索 + RRF 融合
 experiments/        實驗腳本（跑一次產數據，可拋棄）
   NN_xxx.py         依序編號
   results/          各實驗結果筆記（.md）

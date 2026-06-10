@@ -1,7 +1,7 @@
 """雙路混合檢索（Hybrid）+ 互惠排名融合（RRF）。
 
-將 BGE-M3 稠密向量檢索與 BM25 稀疏文字檢索結合，
-並提供選配的 Reranker 進行精細化重排。
+將 BGE-M3 稠密向量檢索與 BM25s 稀疏文字檢索結合。
+RRF 融合後選配 bge-reranker-v2-m3 精細化重排。
 
 設計依據：docs/design_v1.md 第 5.3 節
 """
@@ -10,14 +10,15 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
-import bm25s
-from FlagEmbedding import BGEM3FlagModel
+if TYPE_CHECKING:
+    import bm25s
+    from FlagEmbedding import BGEM3FlagModel
 
 
 class Searcher:
-    """雙路混合檢索器。"""
+    """雙路混合檢索器（BGE-M3 dense + BM25s sparse + RRF）。"""
 
     def __init__(
         self,
@@ -27,20 +28,21 @@ class Searcher:
         collection_name: str = "legal_cases",
         use_gpu: bool = True,
     ):
-        self.chroma_dir = chroma_dir
-        self.bm25_dir = bm25_dir
+        self.chroma_dir = Path(chroma_dir)
+        self.bm25_dir = Path(bm25_dir)
         self.model_id = model_id
         self.collection_name = collection_name
         self.use_gpu = use_gpu
 
-        self._model = None
+        self._model: BGEM3FlagModel | None = None
         self._chroma_client = None
         self._collection = None
-        self._bm25 = None
-        self._bm25_ids = None
+        self._bm25: bm25s.BM25 | None = None
+        self._bm25_ids: list[str] | None = None
 
     @property
     def model(self) -> BGEM3FlagModel:
+        from FlagEmbedding import BGEM3FlagModel
         if self._model is None:
             self._model = BGEM3FlagModel(self.model_id, use_fp16=self.use_gpu)
         return self._model
@@ -53,16 +55,13 @@ class Searcher:
             self._collection = self._chroma_client.get_collection(self.collection_name)
         return self._collection
 
-    @property
-    def bm25(self) -> tuple[bm25s.BM25, list[str]]:
+    def _load_bm25(self) -> tuple[bm25s.BM25, list[str]]:
+        import bm25s
         if self._bm25 is None:
-            # 載入 BM25 模型
-            self._bm25 = bm25s.BM25.load(str(self.bm25_dir))
-            # 載入 ID 映射
-            id_path = self.bm25_dir / "ids.json"
-            with id_path.open(encoding="utf-8") as f:
+            self._bm25 = bm25s.BM25.load(str(self.bm25_dir), load_corpus=True)
+            with (self.bm25_dir / "ids.json").open(encoding="utf-8") as f:
                 self._bm25_ids = json.load(f)
-        return self._bm25, self._bm25_ids
+        return self._bm25, self._bm25_ids  # type: ignore[return-value]
 
     def dense_search(
         self,
@@ -70,11 +69,11 @@ class Searcher:
         top_k: int = 50,
         kind_filter: Literal["criminal", "civil", "both"] = "both",
     ) -> list[tuple[str, float]]:
-        """BGE-M3 向量檢索。"""
-        # 計算 Query Embedding
-        query_emb = self.model.encode([query_text], max_length=1024)["dense_vecs"][0].tolist()
+        """BGE-M3 向量檢索，回傳 [(jid, similarity), ...]。"""
+        query_emb = self.model.encode(
+            [query_text], max_length=1024
+        )["dense_vecs"][0].tolist()
 
-        # 準備 filter
         where = {}
         if kind_filter != "both":
             where["kind"] = kind_filter
@@ -85,13 +84,10 @@ class Searcher:
             where=where if where else None,
         )
 
-        output = []
+        output: list[tuple[str, float]] = []
         if results and results["ids"]:
-            # ChromaDB 回傳 cos 距離，轉為相似度 (1 - distance)
-            ids = results["ids"][0]
-            distances = results["distances"][0]
-            for jid, dist in zip(ids, distances):
-                output.append((jid, 1.0 - dist))
+            for jid, dist in zip(results["ids"][0], results["distances"][0]):
+                output.append((jid, 1.0 - dist))  # cosine dist → similarity
         return output
 
     def sparse_search(
@@ -100,31 +96,30 @@ class Searcher:
         top_k: int = 50,
         kind_filter: Literal["criminal", "civil", "both"] = "both",
     ) -> list[tuple[str, float]]:
-        """BM25 稀疏文字檢索。"""
-        import jieba
+        """BM25s 稀疏文字檢索，回傳 [(jid, score), ...]。"""
+        import bm25s
+        retriever, bm25_ids = self._load_bm25()
+        query_tokens = bm25s.tokenize([query_text], show_progress=False)
+        results, scores = retriever.retrieve(query_tokens, k=min(top_k, len(bm25_ids)))
 
-        retriever, bm25_ids = self.bm25
-        # 分詞
-        words = list(jieba.cut(query_text))
-
-        # 檢索
-        # bm25s 的 retrieve 接受 tokenized query
-        tokens = bm25s.tokenize([words], show_progress=False)
-        results_ids, scores = retriever.retrieve(tokens, k=top_k)
-
-        # 轉為 (jid, score)
-        output = []
-        for idx, score in zip(results_ids[0], scores[0]):
-            jid = bm25_ids[idx]
+        output: list[tuple[str, float]] = []
+        for idx, score in zip(results[0], scores[0]):
+            jid = bm25_ids[int(idx)]
             output.append((jid, float(score)))
-
-        # 手動過濾 kind (BM25s 庫本身不支援 metadata filter，需在後端過濾)
-        if kind_filter != "both":
-            # 這裡需要回讀 corpus/db 來判斷 kind，
-            # 為了效率，此處僅回傳 ID，過濾留給 RRF 階段處理
-            pass
-
         return output
+
+    def hybrid_search(
+        self,
+        query_text: str,
+        top_k: int = 5,
+        rrf_k: int = 60,
+        kind_filter: Literal["criminal", "civil", "both"] = "both",
+    ) -> list[tuple[str, float]]:
+        """RRF 混合檢索（dense + sparse → 融合）。"""
+        dense = self.dense_search(query_text, top_k=50, kind_filter=kind_filter)
+        sparse = self.sparse_search(query_text, top_k=50, kind_filter=kind_filter)
+        fused = rrf_fusion(dense, sparse, k=rrf_k, top_n=top_k)
+        return fused
 
 
 def rrf_fusion(
@@ -133,20 +128,16 @@ def rrf_fusion(
     k: int = 60,
     top_n: int = 20,
 ) -> list[tuple[str, float]]:
-    """互惠排名融合（RRF，Reciprocal Rank Fusion）。
+    """互惠排名融合（RRF）。
 
-    Formula: RRF_Score = 1 / (k + rank_dense) + 1 / (k + rank_sparse)
+    RRF_Score(d) = Σ 1 / (k + rank(d))
     """
     rrf_scores: dict[str, float] = {}
 
-    # 累加 dense 排名
     for rank, (jid, _) in enumerate(dense_results):
         rrf_scores[jid] = rrf_scores.get(jid, 0.0) + 1.0 / (k + rank + 1)
 
-    # 累加 sparse 排名
     for rank, (jid, _) in enumerate(sparse_results):
         rrf_scores[jid] = rrf_scores.get(jid, 0.0) + 1.0 / (k + rank + 1)
 
-    # 排序
-    sorted_results = sorted(rrf_scores.items(), key=lambda x: -x[1])
-    return sorted_results[:top_n]
+    return sorted(rrf_scores.items(), key=lambda x: -x[1])[:top_n]
