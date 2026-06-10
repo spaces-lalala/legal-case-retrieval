@@ -108,8 +108,7 @@ def build_batch_request(record: dict, custom_id: str) -> dict:
                     "schema": EXTRACTION_SCHEMA,
                 },
             },
-            "max_completion_tokens": 512,  # gpt-5 系列用 max_completion_tokens
-            # temperature: gpt-5 系列不支援 0，移除使用預設值 1
+            "max_completion_tokens": 4096,  # gpt-5-mini 是 reasoning model，內部思考消耗大量 token
         },
     }
 
