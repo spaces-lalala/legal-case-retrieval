@@ -147,6 +147,9 @@ def main() -> int:
         corpus_path, segmented_path, dataset_root, n=args.n
     )
 
+    MAX_BATCH_SIZE_MB = 150  # OpenAI 上限 200MB，保守設 150MB
+    CHUNK_SIZE = 10000        # 先以 10k 筆為一個 chunk 估算
+
     print(f"建立 batch 請求檔 → {batch_requests_path}")
     count = create_batch_file(records, batch_requests_path)
     print(f"  請求筆數：{count:,}")
@@ -157,17 +160,40 @@ def main() -> int:
     est_cost = (est_input_tokens / 1e6 * 0.25 + est_output_tokens / 1e6 * 2.0) * 0.5
     print(f"  費用估算（Batch 折半）：${est_cost:.2f} USD")
 
-    # 自動確認提交，不需互動（全量也自動確認，適合背景跑）
-    confirm = "y"
-    if confirm != "y":
-        print("取消")
-        return 0
+    file_size_mb = batch_requests_path.stat().st_size / 1024 / 1024
+    print(f"  批次檔大小：{file_size_mb:.1f} MB")
 
-    batch_id = submit_batch(batch_requests_path)
-    batch_id_path.write_text(batch_id)
-    print(f"batch_id 已存到：{batch_id_path}")
-    print("可用以下指令查詢進度：")
-    print(f"  uv run python experiments/04a_openai_batch.py --batch-id {batch_id}")
+    # 自動確認提交
+    if file_size_mb > MAX_BATCH_SIZE_MB:
+        # 超過限制，自動拆批
+        n_chunks = int(file_size_mb / MAX_BATCH_SIZE_MB) + 1
+        chunk_size = len(records) // n_chunks + 1
+        print(f"  ⚠️  超過 {MAX_BATCH_SIZE_MB}MB 限制，自動拆成 {n_chunks} 個 sub-batch（每批 ~{chunk_size} 筆）")
+
+        batch_ids = []
+        for i in range(n_chunks):
+            chunk = records[i * chunk_size: (i + 1) * chunk_size]
+            if not chunk:
+                break
+            chunk_path = processed / f"batch_requests_chunk{i}.jsonl"
+            create_batch_file(chunk, chunk_path)
+            print(f"  提交 chunk {i+1}/{n_chunks}（{len(chunk)} 筆）...")
+            bid = submit_batch(chunk_path)
+            batch_ids.append(bid)
+
+        # 儲存所有 batch_id
+        all_ids = "\n".join(batch_ids)
+        batch_id_path.write_text(all_ids)
+        print(f"\n所有 batch_id 已存到：{batch_id_path}")
+        for bid in batch_ids:
+            print(f"  {bid}")
+        print("可用以下指令個別查詢進度：")
+        print(f"  uv run python experiments/04a_openai_batch.py --batch-id <batch_id>")
+    else:
+        batch_id = submit_batch(batch_requests_path)
+        batch_id_path.write_text(batch_id)
+        print(f"batch_id 已存到：{batch_id_path}")
+        print(f"  uv run python experiments/04a_openai_batch.py --batch-id {batch_id}")
 
     return 0
 
