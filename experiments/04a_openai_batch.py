@@ -167,7 +167,10 @@ def main() -> int:
         # 超過限制，自動拆批
         n_chunks = int(file_size_mb / MAX_BATCH_SIZE_MB) + 1
         chunk_size = len(records) // n_chunks + 1
-        print(f"  ⚠️  超過 {MAX_BATCH_SIZE_MB}MB 限制，自動拆成 {n_chunks} 個 sub-batch（每批 ~{chunk_size} 筆）")
+        print(
+            f"  超過 {MAX_BATCH_SIZE_MB}MB 限制，"
+            f"自動拆成 {n_chunks} 個 sub-batch（每批 ~{chunk_size} 筆）"
+        )
 
         batch_ids = []
         for i in range(n_chunks):
