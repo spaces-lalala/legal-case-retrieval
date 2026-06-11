@@ -12,10 +12,10 @@ const COLLECTED_LABELS = {
 
 const SEGMENT_NAMES = { main: "主文", facts: "事實", reasoning: "理由" };
 
-function confChip(level) {
+function confChip(level, { prefix = true } = {}) {
   const known = ["high", "medium", "low"].includes(level);
   const cls = known ? ` conf-${level}` : "";
-  return `<span class="conf${cls}">信心：${esc(confidenceLabel(level))}</span>`;
+  return `<span class="conf${cls}">${prefix ? "信心：" : ""}${esc(confidenceLabel(level))}</span>`;
 }
 
 function articleTags(articles) {
@@ -76,9 +76,13 @@ export function renderChatSystem({ question, reason, collected, quickReplies }) 
 
 /* ---------- 載入與錯誤 ---------- */
 
-export function renderSkeleton() {
-  return `<div class="report">
-  <div class="skel" role="status" aria-label="檢索中">
+export function renderSearching() {
+  return `<div class="report report-loading" role="status">
+  <p class="searching-line">
+    <span class="searching-dot" aria-hidden="true"></span>
+    <span id="searching-step">正在理解事由…</span>
+  </p>
+  <div class="skel" aria-hidden="true">
     <span class="w40"></span><span class="w80"></span><span class="w60"></span><span class="w80"></span>
   </div>
 </div>`;
@@ -103,38 +107,50 @@ export function renderSearchError(message, hintHtml) {
 
 /* ---------- 檢索報告（第 1–2 層） ---------- */
 
-export function renderReport(data) {
+export function renderReport(data, opts = {}) {
   const cases = data.cases ?? [];
+  const metaBits = [
+    `<p class="report-kicker">檢索報告</p>`,
+    opts.reportNo ? `<p class="report-no mono">編號 ${esc(opts.reportNo)}</p>` : "",
+    opts.rocDate ? `<p class="report-date">${esc(opts.rocDate)}</p>` : "",
+    opts.mock
+      ? `<span class="tag tag-mock" title="目前讀取 mock 資料；切換真實後端見 web/js/config.js">示意資料</span>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("");
   return `<article class="report">
   <header class="report-head">
-    <p class="report-kicker">檢索報告</p>
+    <div class="report-meta">${metaBits}</div>
     <h2 id="report-title" tabindex="-1">與您事由相似的判決</h2>
-    <p class="report-query">事由：${esc(data.query)}</p>
+    <p class="report-query">事由：「${esc(data.query)}」</p>
+    <span class="stamp" aria-hidden="true">非法律建議</span>
   </header>
   ${data.disclaimer ? `<div class="notice notice-note" role="note"><strong>使用前請了解：</strong>${esc(data.disclaimer)}</div>` : ""}
   <div class="report-part">${renderAnalysis(data.analysis)}</div>
   <div class="report-part">${renderStats(data.stats)}</div>
   <div class="report-part">
-    <h3>三、相似案例</h3>
+    <h3><span class="part-no">三</span>相似案例</h3>
     ${renderCaseToolbar(cases)}
     <div id="case-list">${renderCaseList(cases, cases.length)}</div>
   </div>
   <details class="trace-box" id="trace-box">
-    <summary>四、檢索過程：系統怎麼找到這些案例</summary>
+    <summary><span class="part-no">四</span>檢索過程：系統怎麼找到這些案例</summary>
     <div id="trace-body"></div>
   </details>
 </article>`;
 }
 
 function renderAnalysis(analysis) {
-  if (!analysis) return "<h3>一、法律分析</h3><p class=\"turn-note\">本次檢索未回傳法律分析。</p>";
+  const heading = `<h3><span class="part-no">一</span>法律分析</h3>`;
+  if (!analysis) return `${heading}<p class="turn-note">本次檢索未回傳法律分析。</p>`;
   const rows = (analysis.possible_articles ?? [])
     .map(
       (a) =>
         `<tr><td class="mono">${esc(a.code)}</td><td>${esc(a.name)}</td><td>${esc(a.note)}</td></tr>`,
     )
     .join("");
-  return `<h3>一、法律分析</h3>
+  return `${heading}
 <dl class="kv">
   <div><dt>案件類型</dt><dd>${esc(analysis.case_type)}</dd></div>
   <div><dt>主觀要素</dt><dd>${esc(analysis.subjective)}</dd></div>
@@ -152,12 +168,13 @@ function renderAnalysis(analysis) {
 }
 
 function renderStats(stats) {
-  if (!stats) return "<h3>二、判決結果統計</h3><p class=\"turn-note\">本次檢索未回傳統計。</p>";
+  const heading = `<h3><span class="part-no">二</span>判決結果統計</h3>`;
+  if (!stats) return `${heading}<p class="turn-note">本次檢索未回傳統計。</p>`;
   const bars = (stats.verdict_distribution ?? [])
     .map(
-      (d) => `<div class="bar-row">
+      (d, i) => `<div class="bar-row">
   <span class="bar-label">${esc(d.label)}</span>
-  <span class="bar-track"><span class="bar-fill" style="width:${Math.round((d.ratio ?? 0) * 100)}%"></span></span>
+  <span class="bar-track"><span class="bar-fill" style="width:${Math.round((d.ratio ?? 0) * 100)}%;animation-delay:${i * 70}ms"></span></span>
   <span class="bar-value">${formatCount(d.count)} 件（${formatPercent(d.ratio)}）</span>
 </div>`,
     )
@@ -171,7 +188,7 @@ function renderStats(stats) {
   <div class="stat"><div class="stat-label">最高</div><div class="stat-value">${esc(formatTWD(range.max) ?? "—")}</div></div>
 </div>`
     : "";
-  return `<h3>二、判決結果統計</h3>
+  return `${heading}
 <p>與您的事由相似的判決共 <strong>${formatCount(stats.total_similar)}</strong> 件，結果分布：</p>
 <div class="bars">${bars}</div>
 ${rangeHtml}
@@ -206,27 +223,33 @@ export function renderCaseList(visibleCases, totalCount) {
   if (!visibleCases.length) {
     return `${head}<p class="turn-note">沒有符合篩選的案例，請調整條件。</p>`;
   }
-  return head + visibleCases.map(renderCaseCard).join("");
+  return head + visibleCases.map((c, i) => renderCaseCard(c, i)).join("");
 }
 
-function renderCaseCard(c) {
+function renderCaseCard(c, index) {
   const pct = Math.round((c.similarity ?? 0) * 100);
+  const no = String(index + 1).padStart(2, "0");
   return `<article class="case-card" data-jid="${esc(c.jid)}">
   <header class="case-head">
-    <div>
+    <span class="case-no mono" aria-hidden="true">${no}</span>
+    <div class="case-id">
       <h4 class="case-title">${esc(c.title)}</h4>
       <p class="case-court">${esc(c.court)}・${esc(c.date_display)}</p>
     </div>
     <span class="badge">${esc(c.verdict)}</span>
   </header>
-  <p class="case-facts">${esc(c.facts_summary)}</p>
-  <ul class="case-meta">
-    <li>刑度：${esc(c.sentence ?? "—")}</li>
-    <li>賠償：${esc(formatTWD(c.compensation) ?? "未載明")}</li>
-    <li><span class="meter" aria-hidden="true"><span style="width:${pct}%"></span></span>相似度 ${pct}%</li>
-    <li>${confChip(c.confidence)}</li>
-  </ul>
-  <div class="case-articles">${articleTags(c.cited_articles)}</div>
+  <div class="case-body">
+    <div class="case-main">
+      <p class="case-facts">${esc(c.facts_summary)}</p>
+      <div class="case-articles">${articleTags(c.cited_articles)}</div>
+    </div>
+    <dl class="case-data">
+      <div><dt>刑度</dt><dd>${esc(c.sentence ?? "—")}</dd></div>
+      <div><dt>賠償</dt><dd>${esc(formatTWD(c.compensation) ?? "未載明")}</dd></div>
+      <div><dt>相似度</dt><dd><span class="meter" aria-hidden="true"><span style="width:${pct}%"></span></span><span class="mono">${pct}%</span></dd></div>
+      <div><dt>抽取信心</dt><dd>${confChip(c.confidence, { prefix: false })}</dd></div>
+    </dl>
+  </div>
   <div class="case-actions">
     <button type="button" class="btn btn-small btn-expand" aria-expanded="false">展開詳情與原文</button>
     <span class="case-jid mono">${esc(c.jid)}</span>
