@@ -1,0 +1,636 @@
+/* 頁面區塊：頁首、輸入區、報告、案例、關於、頁尾、響應式、列印 */
+
+/* 頁首 */
+.site-head {
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-head-in {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  padding-block: 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.brand-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.brand-sub {
+  color: var(--muted);
+  font-size: var(--fs-1);
+}
+
+.head-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: var(--fs-1);
+}
+
+/* 輸入區 */
+.intake {
+  padding-block: 36px 8px;
+}
+
+.intake h1 {
+  font-size: var(--fs-5);
+  margin-bottom: 10px;
+}
+
+.lede {
+  color: var(--ink-soft);
+  max-width: 62ch;
+}
+
+.scope {
+  font-size: var(--fs-1);
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.examples-label {
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+/* 對話（筆錄式，非泡泡） */
+.chat {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.chat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: var(--fs-0);
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+
+.chat-log {
+  list-style: none;
+  padding: 4px 16px;
+}
+
+.turn {
+  padding: 12px 0;
+}
+
+.turn + .turn {
+  border-top: 1px dashed var(--line-soft);
+}
+
+.turn-role {
+  font-size: var(--fs-0);
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.turn-user .turn-role {
+  color: var(--accent);
+}
+
+.turn-body {
+  font-size: var(--fs-2);
+}
+
+.turn-note {
+  color: var(--muted);
+  font-size: var(--fs-1);
+}
+
+.collected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.collected .tag {
+  font-family: var(--font-sans);
+}
+
+details.why {
+  margin-top: 6px;
+  font-size: var(--fs-1);
+}
+
+details.why summary {
+  cursor: pointer;
+  color: var(--accent);
+  width: max-content;
+}
+
+details.why p {
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* 提問表單 */
+.ask-form {
+  margin-top: 20px;
+}
+
+.ask-form textarea {
+  width: 100%;
+  min-height: 88px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 12px 14px;
+  font: inherit;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.ask-form textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.ask-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 10px;
+}
+
+.hint {
+  font-size: var(--fs-0);
+  color: var(--muted);
+}
+
+/* 進階條件 */
+.advanced {
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 16px 18px;
+}
+
+.advanced-title {
+  font-size: var(--fs-2);
+}
+
+.advanced-sub {
+  font-size: var(--fs-1);
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.adv-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.field label {
+  display: block;
+  font-size: var(--fs-0);
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 7px 10px;
+  font: inherit;
+  font-size: var(--fs-2);
+  background: var(--panel);
+}
+
+.adv-verdicts {
+  border: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 12px;
+  font-size: var(--fs-2);
+}
+
+.adv-verdicts legend {
+  font-size: var(--fs-0);
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.adv-actions {
+  margin-top: 14px;
+}
+
+/* 檢索報告 */
+.results {
+  margin-top: 28px;
+}
+
+.report {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+}
+
+.report-kicker {
+  font-size: var(--fs-0);
+  color: var(--accent);
+  letter-spacing: 0.18em;
+}
+
+.report-head h2 {
+  font-size: var(--fs-4);
+  margin-top: 2px;
+}
+
+.report-query {
+  color: var(--ink-soft);
+  font-size: var(--fs-2);
+  margin-top: 6px;
+}
+
+.report-part {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.report-part > h3 {
+  font-size: var(--fs-3);
+  margin-bottom: 12px;
+}
+
+.report-part h4 {
+  font-size: var(--fs-2);
+  color: var(--accent-ink);
+  margin: 18px 0 8px;
+}
+
+.analysis-articles {
+  margin-top: 14px;
+}
+
+/* 案例工具列與卡片 */
+.case-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: 6px;
+  font-size: var(--fs-1);
+}
+
+.case-toolbar select {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  font: inherit;
+  font-size: var(--fs-1);
+  background: var(--panel);
+}
+
+.verdict-filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.verdict-filter .filter-label {
+  color: var(--muted);
+}
+
+.case-count {
+  font-size: var(--fs-0);
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.case-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 16px 18px;
+}
+
+.case-card + .case-card {
+  margin-top: 12px;
+}
+
+.case-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+}
+
+.case-title {
+  font-size: var(--fs-3);
+}
+
+.case-court {
+  color: var(--muted);
+  font-size: var(--fs-1);
+  margin-top: 2px;
+}
+
+.case-facts {
+  margin-top: 10px;
+  color: var(--ink-soft);
+  font-size: var(--fs-2);
+}
+
+.case-meta {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin-top: 12px;
+  font-size: var(--fs-1);
+  color: var(--ink-soft);
+}
+
+.case-articles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.case-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.case-jid {
+  color: var(--muted);
+  font-size: var(--fs-0);
+}
+
+/* 案例詳情（第 3 層） */
+.case-detail {
+  border-top: 1px solid var(--line-soft);
+  margin-top: 14px;
+  padding-top: 4px;
+}
+
+.case-detail h5 {
+  font-size: var(--fs-2);
+  color: var(--accent-ink);
+  letter-spacing: 0.04em;
+  margin: 18px 0 8px;
+}
+
+.cite {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--ok);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 12px 14px;
+}
+
+.cite + .cite {
+  margin-top: 10px;
+}
+
+.cite-x {
+  border-left-color: var(--warn);
+}
+
+.cite-claim {
+  font-size: var(--fs-2);
+}
+
+.cite blockquote {
+  margin: 8px 0 6px;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+  color: var(--ink-soft);
+  font-size: var(--fs-1);
+}
+
+.cite figcaption {
+  font-size: var(--fs-0);
+  color: var(--muted);
+}
+
+.seg + .seg {
+  margin-top: 14px;
+}
+
+.seg h6 {
+  font-size: var(--fs-0);
+  color: var(--muted);
+  letter-spacing: 0.18em;
+  margin-bottom: 4px;
+}
+
+.seg p {
+  font-size: var(--fs-2);
+  line-height: 2;
+}
+
+/* 檢索過程（方向 D） */
+.trace-box {
+  margin-top: 24px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.trace-box summary {
+  padding: 14px 0 10px;
+  font-size: var(--fs-3);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.trace {
+  list-style: none;
+  margin-top: 4px;
+}
+
+.trace li {
+  display: flex;
+  gap: 14px;
+  padding: 10px 0;
+}
+
+.trace li + li {
+  border-top: 1px dashed var(--line-soft);
+}
+
+.trace-step {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  flex: 0 0 1.4em;
+  padding-top: 1px;
+}
+
+.trace-name {
+  font-size: var(--fs-2);
+  font-weight: 600;
+}
+
+.trace-detail {
+  color: var(--ink-soft);
+  font-size: var(--fs-1);
+  margin-top: 2px;
+}
+
+/* 關於本系統 */
+.about {
+  margin-top: 48px;
+}
+
+.about h2 {
+  font-size: var(--fs-4);
+  margin-bottom: 16px;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.about-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 18px;
+}
+
+.about-card h3 {
+  font-size: var(--fs-2);
+  margin-bottom: 8px;
+}
+
+.about-card p {
+  font-size: var(--fs-1);
+  color: var(--ink-soft);
+}
+
+/* 頁尾 */
+.site-foot {
+  margin-top: 48px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  padding-block: 22px 34px;
+}
+
+.site-foot p {
+  font-size: var(--fs-0);
+  color: var(--muted);
+}
+
+.site-foot p + p {
+  margin-top: 4px;
+}
+
+/* 響應式 */
+@media (max-width: 720px) {
+  .adv-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report {
+    padding: 18px 16px;
+  }
+
+  .kv > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .case-head {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .intake h1 {
+    font-size: var(--fs-4);
+  }
+
+  .ask-actions .btn-primary {
+    flex: 1 1 auto;
+  }
+
+  .stat {
+    flex-basis: 100%;
+  }
+
+  .bar-row {
+    grid-template-columns: 5em 1fr max-content;
+    gap: 8px;
+  }
+}
+
+/* 列印：保留報告內容，隱藏操作介面 */
+@media print {
+  .site-head .head-nav,
+  .examples,
+  .ask-form,
+  .advanced,
+  .case-actions,
+  .case-toolbar,
+  .chat-head button,
+  .quick,
+  #file-warning {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .report,
+  .case-card,
+  .chat {
+    border-color: #bbb;
+  }
+}

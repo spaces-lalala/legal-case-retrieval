@@ -78,6 +78,7 @@ experiments/        實驗腳本（跑一次產數據，可拋棄）
 tests/              pytest 單元測試
 data/               原始與處理產物（gitignore，不進版控）
 mock/               前端 mock 資料
+web/                前端展示頁（靜態無建置，讀 mock/，可切真實 API；見 web/README.md）
 docs/               設計文件
 ```
 
