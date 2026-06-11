@@ -44,6 +44,15 @@ const QUICK_REPLY_RULES = [
   },
 ];
 
+const SEARCH_STEPS = [
+  "正在理解事由…",
+  "正在推斷可能法條…",
+  "正在比對判決資料庫…",
+  "正在重排與彙整結果…",
+];
+
+const DEFAULT_TITLE = document.title;
+
 const state = {
   messages: [],
   collected: null,
@@ -57,6 +66,7 @@ const state = {
   view: { sort: "similarity", verdicts: new Set() },
   detailCache: new Map(),
   traceLoaded: false,
+  searchTicker: null,
 };
 
 const DEFAULT_PLACEHOLDER = els.queryInput.placeholder;
@@ -65,6 +75,41 @@ function setPending(on) {
   state.pending = on;
   els.btnSubmit.disabled = on;
   els.askForm.setAttribute("aria-busy", String(on));
+}
+
+function autoGrowInput() {
+  const el = els.queryInput;
+  el.style.height = "auto";
+  const next = Math.min(el.scrollHeight + 2, 240);
+  el.style.height = `${next}px`;
+  el.style.overflowY = el.scrollHeight + 2 > 240 ? "auto" : "hidden";
+}
+
+function startSearchTicker() {
+  stopSearchTicker();
+  let i = 0;
+  state.searchTicker = setInterval(() => {
+    const el = document.getElementById("searching-step");
+    if (!el) return;
+    i = (i + 1) % SEARCH_STEPS.length;
+    el.textContent = SEARCH_STEPS[i];
+  }, 340);
+}
+
+function stopSearchTicker() {
+  if (state.searchTicker) {
+    clearInterval(state.searchTicker);
+    state.searchTicker = null;
+  }
+}
+
+function rocNow() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return {
+    reportNo: `${d.getFullYear() - 1911}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`,
+    rocDate: `中華民國 ${d.getFullYear() - 1911} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`,
+  };
 }
 
 function mergedCollected() {
@@ -108,11 +153,13 @@ function resetConversation() {
   state.view = { sort: "similarity", verdicts: new Set() };
   state.detailCache.clear();
   state.traceLoaded = false;
+  stopSearchTicker();
   els.chatLog.innerHTML = "";
   els.chat.hidden = true;
   els.results.hidden = true;
   els.results.innerHTML = "";
   els.queryInput.placeholder = DEFAULT_PLACEHOLDER;
+  document.title = DEFAULT_TITLE;
   history.replaceState(null, "", location.pathname);
 }
 
@@ -123,6 +170,7 @@ async function submitText(text) {
   disableQuickButtons();
   appendTurn(ui.renderChatUser(text));
   els.queryInput.value = "";
+  autoGrowInput();
   await runClarify();
 }
 
@@ -167,7 +215,8 @@ async function runSearch(query, { collected = null, filters = null } = {}) {
   state.lastQuery = query;
   state.lastSearchArgs = { query, collected, filters };
   els.results.hidden = false;
-  els.results.innerHTML = ui.renderSkeleton();
+  els.results.innerHTML = ui.renderSearching();
+  startSearchTicker();
   els.results.scrollIntoView({ block: "start" });
   setPending(true);
   try {
@@ -176,13 +225,16 @@ async function runSearch(query, { collected = null, filters = null } = {}) {
     state.view = { sort: "similarity", verdicts: new Set() };
     state.detailCache.clear();
     state.traceLoaded = false;
-    els.results.innerHTML = ui.renderReport(data);
+    els.results.innerHTML = ui.renderReport(data, { ...rocNow(), mock: USE_MOCK });
     bindTraceBox();
     document.getElementById("report-title")?.focus();
+    const short = query.length > 14 ? `${query.slice(0, 14)}…` : query;
+    document.title = `「${short}」檢索報告｜類案檢索`;
     history.replaceState(null, "", `?q=${encodeURIComponent(query)}`);
   } catch (err) {
     els.results.innerHTML = ui.renderSearchError(err.message, fileHint());
   } finally {
+    stopSearchTicker();
     setPending(false);
   }
 }
@@ -235,6 +287,7 @@ async function toggleDetail(btn) {
     const html = ui.renderCaseDetail(detail);
     state.detailCache.set(jid, html);
     panel.innerHTML = html;
+    panel.firstElementChild?.scrollIntoView({ block: "nearest" });
   } catch (err) {
     panel.innerHTML = ui.renderInlineError(`詳情載入失敗：${err.message}`);
   }
@@ -273,6 +326,8 @@ els.askForm.addEventListener("submit", (e) => {
   submitText(text);
 });
 
+els.queryInput.addEventListener("input", autoGrowInput);
+
 els.queryInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
     e.preventDefault();
@@ -285,12 +340,14 @@ els.examples.addEventListener("click", (e) => {
   if (!btn || state.pending) return;
   resetConversation();
   els.queryInput.value = btn.dataset.example;
+  autoGrowInput();
   submitText(btn.dataset.example);
 });
 
 els.btnReset.addEventListener("click", () => {
   resetConversation();
   els.queryInput.value = "";
+  autoGrowInput();
   els.queryInput.focus();
 });
 
@@ -299,6 +356,14 @@ els.btnAdvanced.addEventListener("click", () => {
   els.advancedPanel.hidden = !open;
   els.btnAdvanced.setAttribute("aria-expanded", String(open));
   if (open) document.getElementById("adv-article").focus();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !els.advancedPanel.hidden) {
+    els.advancedPanel.hidden = true;
+    els.btnAdvanced.setAttribute("aria-expanded", "false");
+    els.btnAdvanced.focus();
+  }
 });
 
 els.advancedPanel.addEventListener("submit", (e) => {
@@ -327,6 +392,7 @@ els.chatLog.addEventListener("click", (e) => {
   if (reply && !state.pending) {
     const option = state.lastQuick.find((o) => o.label === reply.dataset.reply);
     if (option) Object.assign(state.patches, option.patch);
+    reply.setAttribute("aria-pressed", "true");
     submitText(reply.dataset.reply);
     return;
   }
@@ -373,8 +439,7 @@ els.results.addEventListener("change", (e) => {
 async function initHealth() {
   try {
     const h = await api.fetchHealth();
-    const count = `索引 ${formatCount(h.case_count)} 件判決`;
-    els.healthChip.textContent = USE_MOCK ? `展示模式・${count}` : count;
+    els.healthChip.textContent = `資料庫 ${formatCount(h.case_count)} 件判決`;
     if (USE_MOCK) {
       els.healthChip.title = "目前讀取 mock 資料；切換真實後端見 web/js/config.js";
     }
@@ -388,6 +453,7 @@ function initFromUrl() {
   const q = new URLSearchParams(location.search).get("q");
   if (!q) return;
   els.queryInput.value = q;
+  autoGrowInput();
   runSearch(q);
 }
 

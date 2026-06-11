@@ -6,7 +6,10 @@
 <meta name="color-scheme" content="light">
 <title>類案檢索｜法律判決類案搜尋系統</title>
 <meta name="description" content="以白話描述事由，於台灣刑事判決中檢索事實相似的歷史案例：過去法院怎麼判、賠償範圍、判決理由。類案檢索工具，非法律建議。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%232c4a63'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23ffffff' font-family='sans-serif'%3E案%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%232c4a63'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23ffffff' font-family='serif'%3E案%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
@@ -16,10 +19,13 @@
 
 <header class="site-head">
   <div class="wrap site-head-in">
-    <div class="brand">
-      <p class="brand-name">類案檢索</p>
-      <p class="brand-sub">法律判決類案搜尋系統</p>
-    </div>
+    <a class="brand-link" href="./">
+      <span class="brand-mark" aria-hidden="true">案</span>
+      <span class="brand-text">
+        <span class="brand-name">類案檢索</span>
+        <span class="brand-sub">法律判決類案搜尋系統</span>
+      </span>
+    </a>
     <nav class="head-nav" aria-label="網站導覽">
       <span id="health-chip" class="chip chip-quiet" hidden></span>
       <a href="#about">關於本系統</a>
@@ -32,7 +38,7 @@
 
   <section class="intake" aria-labelledby="intake-title">
     <h1 id="intake-title">描述發生了什麼事</h1>
-    <p class="lede">用平常說話的方式描述事由，系統會在台灣刑事判決中檢索事實相似的歷史案例，整理出過去法院怎麼判、賠償落在什麼範圍、判決理由為何。</p>
+    <p class="lede">用平常說話的方式描述事由，系統會在台灣刑事判決中找出事實相似的案例，整理過去法院怎麼判、賠償落在什麼範圍、理由是什麼。</p>
     <p class="scope">資料範圍：民國 105–114 年地方法院刑事判決，以過失傷害、公共危險、肇事逃逸三類案件為主。</p>
 
     <noscript>
@@ -45,10 +51,10 @@
     </div>
 
     <div class="examples" id="examples">
-      <span class="examples-label">試試範例：</span>
-      <button type="button" class="chip" data-example="我開車不小心擦撞到路邊停的貨車，後照鏡壞了，沒有人受傷">開車擦撞停放車輛</button>
-      <button type="button" class="chip" data-example="我騎機車轉彎時撞到行人，對方手臂骨折，我有留在現場處理">騎車撞傷行人</button>
-      <button type="button" class="chip" data-example="朋友聚餐喝了酒還開車回家，路上被警察攔檢，酒測值超標">酒後駕車被攔檢</button>
+      <span class="examples-label">試試範例</span>
+      <button type="button" class="example-q" data-example="我開車不小心擦撞到路邊停的貨車，後照鏡壞了，沒有人受傷">開車擦撞停放車輛</button>
+      <button type="button" class="example-q" data-example="我騎機車轉彎時撞到行人，對方手臂骨折，我有留在現場處理">騎車撞傷行人</button>
+      <button type="button" class="example-q" data-example="朋友聚餐喝了酒還開車回家，路上被警察攔檢，酒測值超標">酒後駕車被攔檢</button>
     </div>
 
     <div class="chat" id="chat" hidden>
@@ -71,7 +77,7 @@
 
     <form id="advanced-panel" class="advanced" hidden aria-labelledby="advanced-title">
       <h2 class="advanced-title" id="advanced-title">進階條件</h2>
-      <p class="advanced-sub">適合知道法條或案由的使用者，不經對話追問直接檢索。</p>
+      <p class="advanced-sub">適合知道法條或案由的使用者，不經對話追問直接檢索。Esc 可關閉。</p>
       <div class="adv-grid">
         <div class="field">
           <label for="adv-article">法條</label>
@@ -111,20 +117,20 @@
 
   <section id="about" class="about" aria-labelledby="about-title">
     <h2 id="about-title">關於本系統</h2>
-    <div class="about-grid">
-      <div class="about-card">
+    <ul class="about-list">
+      <li>
         <h3>這是什麼、不是什麼</h3>
         <p>這是一個類案檢索工具：幫助你了解與自身情況相似的案件，過去法院如何判決。它不是法律建議，不對任何個案做預測；重要決定請諮詢律師或法律扶助基金會。</p>
-      </div>
-      <div class="about-card">
+      </li>
+      <li>
         <h3>資料範圍與已知偏差</h3>
         <p>資料來自司法院開放資料平臺。請注意選擇性偏差：純財物損壞（如僅後照鏡受損）在刑事上多以不起訴收場，幾乎不會出現在判決書中，因此檢索結果會偏向起訴後、後果較重的案件。系統在每筆抽取欄位附上信心標記，無法對應原文的結論會以紅底標出。</p>
-      </div>
-      <div class="about-card">
+      </li>
+      <li>
         <h3>檢索如何運作</h3>
         <p>四個步驟：釐清要件、推斷可能法條、混合檢索（語意向量 BGE-M3 加上關鍵詞 BM25，以 RRF 融合）、再以 bge-reranker 重排取前五件。每次檢索都可展開「檢索過程」查看實際步驟，細節見 repo 內 docs/design_v1.md。</p>
-      </div>
-    </div>
+      </li>
+    </ul>
   </section>
 
 </main>
@@ -133,6 +139,11 @@
   <div class="wrap">
     <p>資料來源：司法院開放資料平臺（opendata.judicial.gov.tw）。本網站為「生成式 AI 的人文導論」課程期末專題，僅供研究與教學展示。</p>
     <p>本系統為類案檢索工具，非法律建議；過去案例不代表您的案件結果。</p>
+    <p class="foot-links">
+      <a href="https://github.com/spaces-lalala/legal-case-retrieval/blob/main/docs/design_v1.md" rel="noopener">系統設計</a>
+      <a href="https://github.com/spaces-lalala/legal-case-retrieval/blob/main/docs/api_v1.md" rel="noopener">API 規格</a>
+      <a href="https://github.com/spaces-lalala/legal-case-retrieval" rel="noopener">原始碼</a>
+    </p>
   </div>
 </footer>
 

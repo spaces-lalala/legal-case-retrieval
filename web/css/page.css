@@ -8,50 +8,84 @@
 
 .site-head-in {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px 20px;
   flex-wrap: wrap;
-  padding-block: 14px;
+  padding-block: 12px;
 }
 
-.brand {
+.brand-link {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-radius: 2px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
 }
 
 .brand-name {
-  font-size: 1.2rem;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
 }
 
 .brand-sub {
   color: var(--muted);
-  font-size: var(--fs-1);
+  font-size: var(--fs-0);
+  letter-spacing: 0.05em;
 }
 
 .head-nav {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   font-size: var(--fs-1);
+}
+
+.head-nav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.head-nav a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 /* 輸入區 */
 .intake {
-  padding-block: 36px 8px;
+  padding-block: 40px 8px;
 }
 
 .intake h1 {
-  font-size: var(--fs-5);
+  font-size: clamp(1.55rem, 1.2rem + 1.6vw, 1.95rem);
   margin-bottom: 10px;
 }
 
 .lede {
   color: var(--ink-soft);
-  max-width: 62ch;
+  max-width: 36em;
 }
 
 .scope {
@@ -63,14 +97,15 @@
 .examples {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: 18px;
+  align-items: baseline;
+  gap: 8px 18px;
+  margin-top: 20px;
 }
 
 .examples-label {
-  font-size: var(--fs-1);
+  font-size: var(--fs-0);
   color: var(--muted);
+  letter-spacing: 0.1em;
 }
 
 /* 對話（筆錄式，非泡泡） */
@@ -99,6 +134,14 @@
 
 .turn {
   padding: 12px 0;
+  animation: turn-in 0.18s ease-out;
+}
+
+@keyframes turn-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
 .turn + .turn {
@@ -109,6 +152,7 @@
   font-size: var(--fs-0);
   color: var(--muted);
   margin-bottom: 4px;
+  letter-spacing: 0.1em;
 }
 
 .turn-user .turn-role {
@@ -127,6 +171,7 @@
 .collected {
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   gap: 6px;
   margin-top: 8px;
 }
@@ -154,6 +199,7 @@ details.why p {
 .quick {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
   margin-top: 10px;
 }
@@ -173,6 +219,7 @@ details.why p {
   font: inherit;
   line-height: 1.7;
   resize: vertical;
+  transition: border-color var(--t);
 }
 
 .ask-form textarea:focus-visible {
@@ -203,7 +250,9 @@ details.why p {
 }
 
 .advanced-title {
+  font-family: var(--font-sans);
   font-size: var(--fs-2);
+  letter-spacing: 0.05em;
 }
 
 .advanced-sub {
@@ -234,6 +283,7 @@ details.why p {
   font: inherit;
   font-size: var(--fs-2);
   background: var(--panel);
+  transition: border-color var(--t);
 }
 
 .adv-verdicts {
@@ -264,18 +314,36 @@ details.why p {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 24px 28px;
+  padding: 26px 30px;
+}
+
+.report-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: var(--fs-0);
+  color: var(--muted);
 }
 
 .report-kicker {
-  font-size: var(--fs-0);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: var(--fs-1);
   color: var(--accent);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.3em;
+}
+
+.report-head {
+  position: relative;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 16px;
+  padding-right: 130px;
 }
 
 .report-head h2 {
   font-size: var(--fs-4);
-  margin-top: 2px;
+  margin-top: 6px;
 }
 
 .report-query {
@@ -284,21 +352,53 @@ details.why p {
   margin-top: 6px;
 }
 
+/* 鈐印：把「非法律建議」做成設計簽名 */
+.stamp {
+  position: absolute;
+  right: 0;
+  top: 4px;
+  transform: rotate(-4deg);
+  border: 2px solid var(--warn);
+  color: var(--warn);
+  border-radius: 2px;
+  padding: 3px 4px 3px 12px;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: var(--fs-1);
+  letter-spacing: 0.32em;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
 .report-part {
-  margin-top: 24px;
+  margin-top: 26px;
   padding-top: 20px;
+}
+
+.report-part + .report-part {
   border-top: 1px solid var(--line-soft);
 }
 
 .report-part > h3 {
   font-size: var(--fs-3);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.part-no {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--accent);
+  padding-right: 0.6em;
+  margin-right: 0.6em;
+  border-right: 1px solid var(--line);
 }
 
 .report-part h4 {
+  font-family: var(--font-sans);
   font-size: var(--fs-2);
   color: var(--accent-ink);
   margin: 18px 0 8px;
+  letter-spacing: 0.04em;
 }
 
 .analysis-articles {
@@ -347,6 +447,12 @@ details.why p {
   border-radius: var(--radius);
   background: var(--panel);
   padding: 16px 18px;
+  transition: border-color var(--t);
+}
+
+.case-card:hover,
+.case-card:focus-within {
+  border-color: var(--accent);
 }
 
 .case-card + .case-card {
@@ -355,10 +461,21 @@ details.why p {
 
 .case-head {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  gap: 8px 16px;
-  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.case-no {
+  font-size: 1.7rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--line);
+  user-select: none;
+}
+
+.case-id {
+  flex: 1;
+  min-width: 0;
 }
 
 .case-title {
@@ -371,20 +488,16 @@ details.why p {
   margin-top: 2px;
 }
 
-.case-facts {
-  margin-top: 10px;
-  color: var(--ink-soft);
-  font-size: var(--fs-2);
+.case-body {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 18px;
+  margin-top: 12px;
 }
 
-.case-meta {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 20px;
-  margin-top: 12px;
-  font-size: var(--fs-1);
+.case-facts {
   color: var(--ink-soft);
+  font-size: var(--fs-2);
 }
 
 .case-articles {
@@ -392,6 +505,35 @@ details.why p {
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 10px;
+}
+
+.case-data {
+  border-left: 1px solid var(--line-soft);
+  padding-left: 16px;
+  align-self: start;
+}
+
+.case-data > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+}
+
+.case-data > div + div {
+  border-top: 1px dashed var(--line-soft);
+}
+
+.case-data dt {
+  color: var(--muted);
+  font-size: var(--fs-0);
+  white-space: nowrap;
+}
+
+.case-data dd {
+  font-size: var(--fs-1);
+  text-align: right;
 }
 
 .case-actions {
@@ -422,6 +564,16 @@ details.why p {
   margin: 18px 0 8px;
 }
 
+.case-detail h5::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  margin-right: 8px;
+  vertical-align: 0.08em;
+}
+
 .cite {
   border: 1px solid var(--line);
   border-left: 3px solid var(--ok);
@@ -448,6 +600,7 @@ details.why p {
   border-left: 2px solid var(--line);
   color: var(--ink-soft);
   font-size: var(--fs-1);
+  font-family: var(--font-serif);
 }
 
 .cite figcaption {
@@ -462,26 +615,33 @@ details.why p {
 .seg h6 {
   font-size: var(--fs-0);
   color: var(--muted);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   margin-bottom: 4px;
 }
 
+/* 原文用明體，像在讀判決書本身 */
 .seg p {
+  font-family: var(--font-serif);
   font-size: var(--fs-2);
-  line-height: 2;
+  line-height: 2.05;
 }
 
 /* 檢索過程（方向 D） */
 .trace-box {
-  margin-top: 24px;
+  margin-top: 26px;
   border-top: 1px solid var(--line-soft);
 }
 
 .trace-box summary {
-  padding: 14px 0 10px;
+  padding: 16px 0 10px;
+  font-family: var(--font-serif);
   font-size: var(--fs-3);
   font-weight: 700;
   cursor: pointer;
+}
+
+.trace-box summary::marker {
+  color: var(--accent);
 }
 
 .trace {
@@ -517,45 +677,44 @@ details.why p {
   margin-top: 2px;
 }
 
-/* 關於本系統 */
+/* 關於本系統：編輯式條列，非卡片格 */
 .about {
-  margin-top: 48px;
+  margin-top: 52px;
 }
 
 .about h2 {
   font-size: var(--fs-4);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
-.about-grid {
+.about-list {
+  list-style: none;
+  border-top: 2px solid var(--ink);
+}
+
+.about-list > li {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  grid-template-columns: 230px 1fr;
+  gap: 8px 28px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
 }
 
-.about-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
-  padding: 18px;
+.about-list h3 {
+  font-size: var(--fs-3);
 }
 
-.about-card h3 {
-  font-size: var(--fs-2);
-  margin-bottom: 8px;
-}
-
-.about-card p {
+.about-list p {
   font-size: var(--fs-1);
   color: var(--ink-soft);
 }
 
 /* 頁尾 */
 .site-foot {
-  margin-top: 48px;
+  margin-top: 56px;
   border-top: 1px solid var(--line);
   background: var(--panel);
-  padding-block: 22px 34px;
+  padding-block: 22px 36px;
 }
 
 .site-foot p {
@@ -567,14 +726,21 @@ details.why p {
   margin-top: 4px;
 }
 
+.foot-links {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.foot-links a {
+  color: var(--ink-soft);
+}
+
 /* 響應式 */
 @media (max-width: 720px) {
   .adv-grid {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .about-grid {
-    grid-template-columns: 1fr;
   }
 
   .report {
@@ -586,22 +752,51 @@ details.why p {
     gap: 2px;
   }
 
-  .case-head {
-    flex-direction: column;
+  .case-body {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .case-data {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--line-soft);
+    padding-top: 6px;
+  }
+
+  .about-list > li {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .report-head {
+    padding-right: 0;
+  }
+
+  .stamp {
+    position: static;
+    display: inline-block;
+    margin-top: 10px;
+    transform: rotate(-2deg);
   }
 }
 
 @media (max-width: 480px) {
-  .intake h1 {
-    font-size: var(--fs-4);
-  }
-
   .ask-actions .btn-primary {
     flex: 1 1 auto;
   }
 
   .stat {
     flex-basis: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .stat + .stat {
+    border-left: none;
+    border-top: 1px dashed var(--line-soft);
+    padding-left: 0;
   }
 
   .bar-row {
@@ -626,6 +821,7 @@ details.why p {
 
   body {
     background: #fff;
+    border-top-width: 6px;
   }
 
   .report,

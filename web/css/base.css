@@ -15,8 +15,11 @@ body {
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.8;
+  letter-spacing: 0.012em;
+  line-break: strict;
   color: var(--ink);
   background: var(--paper);
+  border-top: 3px solid var(--warn);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -26,7 +29,15 @@ body {
   padding-inline: 20px;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  text-wrap: balance;
+}
+
+h5, h6 {
   font-weight: 700;
   line-height: 1.45;
 }
@@ -51,6 +62,11 @@ code {
 
 ol, ul {
   list-style-position: inside;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
 }
 
 :focus-visible {
